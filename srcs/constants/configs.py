@@ -1,0 +1,14 @@
+# 파일 경로 및 고정 크기 설정
+TRANSACTION_PATH = "data/transaction.jsonl"
+BUDGET_PATH = "data/budget.jsonl"
+CATEGORY_PATH = "data/category.jsonl"
+
+TRANSACTION_LINE_SIZE = 256
+CATEGORY_LINE_SIZE = 64
+BUDGET_LINE_SIZE = 64
+CATEGORY_FIELD_SIZE = 60
+ASK_MAX = 5
+MAX_TRANSACTION = 1000000
+MAX_BUDGET = 100000000
+
+TYPE_RANGE = ["income", "expense"]

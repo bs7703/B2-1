@@ -1,38 +1,7 @@
-from __future__ import annotations
 from dataclasses import dataclass
+from srcs.constants import TYPE_RANGE, MAX_TRANSACTION, CATEGORY_FIELD_SIZE
 from datetime import datetime
-from functools import wraps
-from typing import Callable
-from .constants import T, K, TYPE_RANGE
-from srcs.constants import CATEGORY_FIELD_SIZE
-
-
-def check_category_length(func:Callable[[K], None]):
-    @wraps(func)
-    def wrapper(self:K):
-        result = func(self)
-        if len(self.category.encode('utf-8')) > CATEGORY_FIELD_SIZE:
-            raise ValueError("Category_Length_Error")
-        return result
-    return wrapper
-
-def check_validity(func:Callable[[T], None]):
-    @wraps(func)
-    def wrapper(self:T):
-        result = func(self)
-        try:
-            self.amount = int(self.amount)
-        except (ValueError, TypeError):
-            raise ValueError("int_value_error")
-        try:
-            datetime.strptime(self.date, "%Y-%m-%d")
-        except ValueError:
-            raise ValueError("Date_Error")
-        if self.amount < 0:
-            raise ValueError("amount minus Error")
-        return result
-    return wrapper
-
+from srcs.validator import validate_category
 @dataclass
 class transaction:
     id: int
@@ -40,22 +9,30 @@ class transaction:
     type: str
     category: str
     amount: int
-    @check_category_length
-    @check_validity
     def __post_init__(self):
+        try:
+            self.amount = int(self.amount)
+        except TypeError:
+            raise TypeError("숫자가 아닙니다.")
+        if self.amount < 0:
+            raise ValueError("amount minus Error")
+        if (self.amount > MAX_TRANSACTION):
+            raise ValueError(f"가능한 거래한도{MAX_TRANSACTION}초과입니다.")
         if self.type not in TYPE_RANGE:
             raise ValueError("Type_Error")
+        try:
+            datetime.strptime(self.date, "%Y-%m-%d")
+        except ValueError:
+            raise ValueError("Date_Error")
+
+#버젯은 인자전달정규화로 인자전달시 확인
 @dataclass
 class budget:
     amount: int
     date: str
-    @check_validity
-    def __post_init__(self):
-        ...
-
 @dataclass
 class category:
     category: str
-    @check_category_length
     def __post_init__(self):
-        ...
+        if not(validate_category(self.category)):
+            raise ValueError(f"category가 {CATEGORY_FIELD_SIZE}크기를 넘으면ㅇ나됩니다.")
