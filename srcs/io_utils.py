@@ -14,6 +14,9 @@ def addpadding(my_class: object | None, line_size: int) -> bytes:
         raise ValueError(f"데이터가 너무 큽니다! ({len(bts)} bytes / 제한: {line_size-1})")
     return bts.ljust(line_size - 1, b"\x20") + b"\n"
 
+def is_tombstone(b:bytes)->bool:
+    return b.strip(b"\x20") == b"\n"
+
 def bytestoclass(line: bytes, d: ClassConfig[G]) -> G | None:
     try:
         data = json.loads(line.decode("utf-8"))
@@ -27,6 +30,8 @@ def filegenerator(file: BufferedIOBase, d: ClassConfig[G], rev: bool = False) ->
     if not rev:
         while True:
             line = file.read(d.line_size)
+            if (is_tombstone(line)):
+                continue
             if not line:
                 return
             data = bytestoclass(line, d)
@@ -38,6 +43,9 @@ def filegenerator(file: BufferedIOBase, d: ClassConfig[G], rev: bool = False) ->
         while offset >= 0:
             file.seek(offset)
             line = file.read(d.line_size)
+            if (is_tombstone(line)):
+                offset -=  d.line_size
+                continue
             data = bytestoclass(line, d)
             if data is not None:
                 yield data
@@ -47,7 +55,7 @@ def filegenerator(file: BufferedIOBase, d: ClassConfig[G], rev: bool = False) ->
 def isExist(file: BufferedIOBase, d: ClassConfig[G], idx: int) -> bool:
     file.seek(idx * d.line_size)
     line = file.read(d.line_size)
-    if line is b"\x20" * (d.line_size - 1) + b"\n":
+    if is_tombstone(line):
         return False
     file.seek(0)
     return True

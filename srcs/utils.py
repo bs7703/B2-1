@@ -89,8 +89,9 @@ def addtransaction(files: dict[str, Any]) -> tuple[str, bool]:
     return "카테고리를 먼저 추가하세요", False
 
 @file_manager({"f": (TRANSACTION_PATH, "rb+", False)})
-def updatetransaction(files: dict[str, Any], tx_id: int, update: bool = True) -> tuple[str, bool]:
+def updatetransaction(files: dict[str, Any], id:str, update: bool = True) -> tuple[str, bool]:
     f = files['f']
+    tx_id = int(id)
     if not indexAvailable(f, DATACLASS['transaction'], tx_id):
         return "인덱스 범위 초과", False
     if not isExist(f, DATACLASS['transaction'], tx_id):
@@ -204,7 +205,7 @@ def aggregate_transactions(gen: Generator[transaction, None, None], month: str):
 
 # --- 주요 기능 구현 ---
 # --- CSV 스키마 정의 ---
-CSV_COLUMNS = ["date", "type", "category", "amount"]
+CSV_COLUMNS = ["date", "type", "category", "amount", "memo", "tag"]
 
 @file_manager({"t": (TRANSACTION_PATH, "rb+", True)})
 def import_csv(files: dict[str, Any], **kwargs) -> tuple[str, bool]:

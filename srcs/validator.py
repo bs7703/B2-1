@@ -34,4 +34,4 @@ def validate_under(value:str, num:int)->bool:
         return False
     return True
 def validate_category(value:str)->bool:
-    return len(str.encode("utf-8")) > CATEGORY_FIELD_SIZE
+    return len(str.encode("utf-8")) < CATEGORY_FIELD_SIZE
