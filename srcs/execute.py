@@ -3,7 +3,6 @@ from srcs.dispatcher import VALID_CMD
 
 def execute(cmd:str, options:dict[str, str]):
     try:
-        print("called_cmd")
         msg, s = VALID_CMD[cmd](**options)
         print(msg, f"{s}")
     except DataException:

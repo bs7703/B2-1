@@ -1,5 +1,5 @@
 from typing import Callable
-from srcs.fileformat import transaction
+from srcs.fileformat import Transaction
 from srcs.comparator import comp_date as cd
 class Search():
     def __init__(
@@ -17,7 +17,7 @@ class Search():
             ("amount", comp_amount),
             ("category", comp_category),
         )   
-    def match(self, a:transaction) -> bool:
+    def match(self, a:Transaction) -> bool:
         return all(comp is None or value is None or comp(value)
             for name, comp in self.comps
             if (value := getattr(a, name)) is not None

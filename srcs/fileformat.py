@@ -3,7 +3,7 @@ from srcs.constants import TYPE_RANGE, MAX_TRANSACTION, CATEGORY_FIELD_SIZE
 from datetime import datetime
 from srcs.validator import validate_category
 @dataclass
-class transaction:
+class Transaction:
     id: int
     date: str
     type: str
@@ -27,12 +27,12 @@ class transaction:
 
 #버젯은 인자전달정규화로 인자전달시 확인
 @dataclass
-class budget:
+class Budget:
     amount: int
-    date: str
+    month: str
 @dataclass
-class category:
+class Category:
     category: str
     def __post_init__(self):
         if not(validate_category(self.category)):
-            raise ValueError(f"category가 {CATEGORY_FIELD_SIZE}크기를 넘으면ㅇ나됩니다.")
+            raise ValueError(f"category가 {CATEGORY_FIELD_SIZE}크기를 넘으면안됩니다.")

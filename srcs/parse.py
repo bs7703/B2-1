@@ -1,6 +1,8 @@
 
 from __future__ import annotations
 from srcs.dispatcher import VALID_COMMANDS, VALID_SUBCOMMANDS, CommandSpec
+from srcs.exception import HelpException
+from srcs.constants import HELP_MESSAGES
 
 def parse_command(args: list[str]) -> tuple[str, list[str]]:
     if not args:
@@ -28,58 +30,102 @@ def get_command_spec(command: str) -> CommandSpec:
     parent, subcommand = command.split(" ", 1)
     return VALID_SUBCOMMANDS[parent][subcommand]
 
-
 def parse_arguments(
     args: list[str],
-    spec: CommandSpec
+    spec: CommandSpec,
+    command: str,
 ) -> tuple[str | None, dict[str, str]]:
 
     positional = None
-    options:dict[str,str] = {}
+    options: dict[str, str] = {}
 
-    if not args:
-        return positional, options
+    # positional argument
+    if args and not args[0].startswith("--"):
 
-    if not args[0].startswith("--"):
         if spec["pos"] is None:
-            raise ValueError("positional argument를 사용할 수 없습니다.")
+            raise ValueError(
+                "positional argument를 사용할 수 없습니다."
+            )
 
-        positional = args[0]
+        positional = args.pop(0)
 
         if not spec["pos"](positional):
-            raise ValueError(f"잘못된 positional argument: {positional}")
+            raise ValueError(
+                f"잘못된 positional argument: {positional}"
+            )
 
-        if len(args) > 1:
-            raise ValueError("positional argument는 하나만 사용할 수 있습니다.")
+        if args:
+            raise ValueError(
+                "positional argument는 하나만 사용할 수 있습니다."
+            )
 
         return positional, options
 
+    # option parsing
     while args:
-        option = args.pop(0)[2:]
 
-        if option == "help":
-            # help 처리
-            ...
+        option = args.pop(0)
+
+        if option == "--help":
+            raise HelpException(
+                HELP_MESSAGES[command]
+            )
+
+        if not option.startswith("--"):
+            raise ValueError(
+                f"잘못된 option 형식: {option}"
+            )
+
+        option = option[2:]
 
         if option not in spec["options"]:
-            raise ValueError(f"사용할 수 없는 option: --{option}")
+            raise ValueError(
+                f"사용할 수 없는 option: --{option}"
+            )
 
         if not args:
-            raise ValueError(f"--{option}의 값이 필요합니다.")
+            raise ValueError(
+                f"--{option}의 값이 필요합니다."
+            )
 
         value = args.pop(0)
 
         if value.startswith("--"):
-            raise ValueError(f"--{option}의 값이 필요합니다.")
+            raise ValueError(
+                f"--{option}의 값이 필요합니다."
+            )
 
         if option in options:
-            raise ValueError(f"중복된 option: --{option}")
+            raise ValueError(
+                f"중복된 option: --{option}"
+            )
 
         validator = spec["options"][option]
 
         if validator is not None and not validator(value):
-            raise ValueError(f"잘못된 값: --{option} {value}")
+            raise ValueError(
+                f"잘못된 값: --{option} {value}"
+            )
 
         options[option] = value
+
+    # option 존재 여부 검사
+    if spec["options_required"] and not options:
+        raise ValueError(
+            "최소 하나의 option이 필요합니다."
+        )
+
+    # required option 검사
+    missing = spec["required_options"] - options.keys()
+
+    if missing:
+        missing_str = ", ".join(
+            f"--{option}"
+            for option in sorted(missing)
+        )
+
+        raise ValueError(
+            f"필수 option이 없습니다: {missing_str}"
+        )
 
     return positional, options

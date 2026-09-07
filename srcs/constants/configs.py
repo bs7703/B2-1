@@ -11,4 +11,4 @@ ASK_MAX = 5
 MAX_TRANSACTION = 1000000
 MAX_BUDGET = 100000000
 
-TYPE_RANGE = ["income", "expense"]
+TYPE_RANGE = ("income", "expense")
